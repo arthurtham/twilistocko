@@ -1,0 +1,5 @@
+twilio
+python-dotenv
+flask
+flask_cors
+waitress
