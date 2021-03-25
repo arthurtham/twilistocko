@@ -15,19 +15,23 @@ load_dotenv()
 
 import os
 
+import random
+
 app=Flask(__name__)
 CORS(app)
 
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN  = os.environ.get("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.environ.get("TWILIO_PHONE_NUMBER")
+TWILIO_MESSAGING_SERVICE_SID = os.environ.get("TWILIO_MESSAGING_SERVICE_SID")
+TEST_NUMBERS = os.environ.get("TEST_NUMBERS").split(";")
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 ### START Twilio Functions ###
 def send_message(to_number, msg):
     message = client.messages.create(
         to=to_number, 
-        from_=TWILIO_PHONE_NUMBER,
+        from_=TWILIO_MESSAGING_SERVICE_SID,
         body=msg)
 
     return message.sid
@@ -35,7 +39,7 @@ def send_message(to_number, msg):
 def send_media_message(to_number, msg, media):
     message = client.messages.create(
         to=to_number, 
-        from_=TWILIO_PHONE_NUMBER,
+        from_=TWILIO_MESSAGING_SERVICE_SID,
         media_url=[media],
         body=msg)
 
@@ -43,9 +47,9 @@ def send_media_message(to_number, msg, media):
 
 ### END Twilio Functions ###
 
-
-@app.route("/", methods=["POST"])
-def index():
+### START Twilio Webhook Functions ###
+@app.route("/hello-world", methods=["POST"])
+def hello_world():
     print(request.values)
     print(request.values.get('From', ''))
 
@@ -58,6 +62,24 @@ def index():
     message_sid = send_message(incoming_number, "Hello world")
 
     return message_sid
+
+
+
+@app.route("/test-notification", methods=["GET","POST"])
+def test_notification():
+    print(request.values if request is not None else "null")
+
+    message_body = "MSFT just broke 200 points. Buy now!"
+
+    message_sid = send_message(TEST_NUMBERS[random.randint(0,len(TEST_NUMBERS)-1)], message_body)
+    return message_sid
+
+
+
+### END Twilio Webhook Functions ###
+
+# TODO: Add/remove/manage requests to mongo functions?
+
 
 if __name__ == "__main__":
     #from waitress import serve
