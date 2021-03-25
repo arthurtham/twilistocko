@@ -1,11 +1,12 @@
 from flask import Flask, request
 from flask_cors import CORS
+import requests
 
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
 
-from urllib import request as requests
-from urllib.parse import urlencode
+#from urllib import request as requests
+#from urllib.parse import urlencode
 
 import json
 import ast
@@ -20,6 +21,8 @@ import random
 app=Flask(__name__)
 CORS(app)
 
+
+FINNHUB_AUTH_TOKEN = os.environ.get("FINNHUB_AUTH_TOKEN")
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN  = os.environ.get("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.environ.get("TWILIO_PHONE_NUMBER")
@@ -69,8 +72,13 @@ def hello_world():
 def test_notification():
     print(request.values if request is not None else "null")
 
-    message_body = "MSFT just broke 200 points. Buy now!"
 
+    stock_symbol = random.choice(["AAPL", "MSFT", "GE", "SBUX", "NKE"])
+    stock_request = requests.get(f'https://finnhub.io/api/v1/quote?symbol={stock_symbol}&token={FINNHUB_AUTH_TOKEN}')
+    stock_request = stock_request.json()
+
+    message_body = f"{stock_symbol} currently has {stock_request['c']} points. Buy now!"
+    
     message_sid = send_message(TEST_NUMBERS[random.randint(0,len(TEST_NUMBERS)-1)], message_body)
     return message_sid
 
