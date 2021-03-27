@@ -84,7 +84,6 @@ function About() {
 
 function Dashboard() {
     
-
     return (
         <div>
             <h2>Dashboard</h2>
@@ -96,7 +95,7 @@ function Dashboard() {
             <hr />
 
             <div name="mongo-results" id="mongo-results">
-
+              
             </div>
 
             <div name="mongo-submit-div" id="mongo-submit-div" style={{visibility:'hidden'}}>
@@ -116,12 +115,13 @@ function Dashboard() {
                   </td>
                 </tr>
               </table>
-              <button name='add-notifications' id='add-notifications' onClick={HelloWorld}>Add</button>
+              <button name='add-notifications' id='add-notifications' onClick={AddNotification}>Add</button>
             </div>
         </div>
     );
 }
 
+var MONGO_LINK = "http://127.0.0.1:5000";
 
 // Dashboard functions
 function HelloWorld(e) {
@@ -143,13 +143,41 @@ function HideSubmitButtons() {
     document.getElementById("add-notification-div").style.visibility = "hidden";
 }
 
-function SubmitData(e){
+function AddNotification(e){
+    var greater = false;
+    var greaterOrLessOptions = document.getElementsByName("modeAdd");
+    if (greaterOrLessOptions[0].checked == true) {
+      greater = false;
+    } else if (greaterOrLessOptions[1].checked == true) {
+      greater = true;
+    }
+
     var submitData = {
-        "phone": "00000000", //Dummy Data
-        "stocks": []
+        "phone": document.getElementById("shown-phone-number").innerHTML, 
+        "stock": document.getElementById("symbolAdd").value,
+        "target": document.getElementById("targetAdd").value,
+        "mode": greater ? "greater" : "less" // or less
     };
 
+    console.log("AddNotification");
+    console.log(submitData);
 
+    const requestOptions = {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify( submitData )
+    };
+
+    fetch(MONGO_LINK+"/hello-world", requestOptions)
+    .then(response => response.json())
+    .then(data => 
+      console.log(data)
+      );
+      //TODO: Connect to ConfirmNotificationAdded function
+
+}
+
+function ConfirmNotificationAdded(data) {
 
 }
 
@@ -218,7 +246,7 @@ function GetDataByPhone(e) {
   } else {
     console.log("phone number not found");
 
-    document.getElementById("mongo-results").innerHTML = "<h3>Phone number not found. Start a new entry?";
+    document.getElementById("mongo-results").innerHTML = "<h3>Phone number not found. Start a new entry with <span name='shown-phone-number' id='shown-phone-number'>"+phoneNumber+"</span>?";
 
     HideSubmitButtons();
     
