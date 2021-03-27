@@ -9,23 +9,22 @@ db = client['stockinfo']
 collection = db['start']
 
 # adding a doc to the database
-# post = {
-#     "phone": "000002222",
-#     "stocks": [
-#         {
-#         "symbol": "AMZN",
-#         "target": 80.00,
-#         "mode":   "less"
-#         },
-#         {
-#         "symbol": "GOOG",
-#         "target": 60.00,
-#         "mode":   "greater"
-#         }
-#     ]
-# }
-# posts = db.start
-# post_id = posts.insert_one(post).inserted_id
+post = {
+    "123452222": [
+        {
+        "symbol": "AMZN",
+        "target": 80.00,
+        "mode":   "less"
+        },
+        {
+        "symbol": "GOOG",
+        "target": 60.00,
+        "mode":   "greater"
+        }
+    ]
+}
+posts = db.start
+post_id = posts.insert_one(post).inserted_id
 
 
 # figure out how to add to/remove from the dictionary of stock notifications
