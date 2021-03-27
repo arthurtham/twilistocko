@@ -100,20 +100,30 @@ function Dashboard() {
             </div>
 
             <div name="mongo-submit-div" id="mongo-submit-div" style={{visibility:'hidden'}}>
-            <button name='update-notifications' id='update-notifications' onClick={HelloWorld}>Submit</button>
+              <button name='update-notifications' id='update-notifications' onClick={HelloWorld}>Submit</button>
             </div>
 
             <div name="add-notification-div" id="add-notification-div" style={{visibility:'hidden'}}>
-
+              <h2>Add a stock notification</h2>
+              <table>
+                <tr><th>Stock</th><th>Target Point</th><th>Mode</th></tr>
+                <tr>
+                  <td><input name='symbolAdd' id='symbolAdd' value='AAPL'></input></td>
+                  <td><input name='targetAdd' id='targetAdd' value="100" /></td>
+                  <td>
+                      Less    <input name='modeAdd' id='modeAdd' type='radio' checked />
+                      Greater <input name='modeAdd' id='modeAdd' type='radio' />
+                  </td>
+                </tr>
+              </table>
+              <button name='add-notifications' id='add-notifications' onClick={HelloWorld}>Add</button>
             </div>
-
         </div>
     );
 }
 
 
 // Dashboard functions
-
 function HelloWorld(e) {
     e.preventDefault();
 
@@ -126,6 +136,11 @@ function ShowSubmitButtons() {
     document.getElementById("mongo-submit-div").style.visibility = "visible";
     document.getElementById("add-notification-div").style.visibility = "visible";
 
+}
+
+function HideSubmitButtons() {
+    document.getElementById("mongo-submit-div").style.visibility = "hidden";
+    document.getElementById("add-notification-div").style.visibility = "hidden";
 }
 
 function SubmitData(e){
@@ -149,68 +164,67 @@ function GetDataByPhone(e) {
     //TODO: Get back results. Send: "+194955512345", return a JSON with our data
 
     var results = {
-        "_id": {
-            "$oid": "605d670452b3c30869b3d95f"
+      "+15101234567" : [
+        {
+          "symbol": "AMZN",
+          "target": 80,
+          "mode": "less", 
         },
-        "phone": "000002222",
-        "stocks": [
-            {
-                "symbol": "AAPL",
-                "target": 60,
-                "mode": "less"
-            },
-            {
-                "symbol": "MSFT",
-                "target": 50,
-                "mode": "greater"
-            }
-        ]
+        {
+          "symbol": "MSFT",
+          "target": 30,
+          "mode": "greater"
+        }
+      ]
     }
 
-    var stocks = results["stocks"];
-    console.log(stocks)
-
-    var resultHtml = "<h1>Results for Phone Number <span name='shown-phone-number' id='shown-phone-number'>"+phoneNumber+"</span></h1>\
-    \
-    <table><tr><th>Stock</th><th>Target Point</th><th>Mode</th><th>Remove?</th></tr>";
-
-    for (var _i = 0; _i < stocks.length; ++_i) {
-        var stocksEntry = stocks[_i];
-        console.log(stocksEntry);
-        console.log(stocksEntry["mode"].valueOf() === "less");
-        resultHtml += "<tr>\
-            <td>"+stocksEntry["symbol"]+"</td>\
-            <td><input name='target"+_i.toString()+"' id='target"+_i.toString()+"' value='"+stocksEntry["target"]+"' /></td>\
-            <td>\
-                Less    <input name='mode"+_i.toString()+"' id='mode"+_i.toString()+"' type='radio' "+(stocksEntry["mode"].valueOf() === "less" ? "checked" : "")+" />\
-                Greater <input name='mode"+_i.toString()+"' id='mode"+_i.toString()+"' type='radio' "+(stocksEntry["mode"].valueOf() === "greater" ? "checked" : "")+" />\
-            </td>\
-            <td>\
-                <input name=<input name='delete"+_i.toString()+"' id='delete"+_i.toString()+"' type='checkbox' />\
-            </td>\
-            </tr>";
-
-    }
+    var stocks;
     
+    if (phoneNumber in results) {
+      stocks = results[phoneNumber]
+    
+      console.log(stocks);
 
-    resultHtml += "</table>";
+      var resultHtml = "<h1>Results for Phone Number <span name='shown-phone-number' id='shown-phone-number'>"+phoneNumber+"</span></h1>\
+      \
+      <table><tr><th>Stock</th><th>Target Point</th><th>Mode</th><th>Remove?</th></tr>";
 
-    document.getElementById("mongo-results").innerHTML = resultHtml;
-    ShowSubmitButtons();
+      for (var _i = 0; _i < stocks.length; ++_i) {
+          var stocksEntry = stocks[_i];
+          console.log(stocksEntry);
+          console.log(stocksEntry["mode"].valueOf() === "less");
+          resultHtml += "<tr>\
+              <td>"+stocksEntry["symbol"]+"</td>\
+              <td><input name='target"+_i.toString()+"' id='target"+_i.toString()+"' value='"+stocksEntry["target"]+"' /></td>\
+              <td>\
+                  Less    <input name='mode"+_i.toString()+"' id='mode"+_i.toString()+"' type='radio' "+(stocksEntry["mode"].valueOf() === "less" ? "checked" : "")+" />\
+                  Greater <input name='mode"+_i.toString()+"' id='mode"+_i.toString()+"' type='radio' "+(stocksEntry["mode"].valueOf() === "greater" ? "checked" : "")+" />\
+              </td>\
+              <td>\
+                  <input name=<input name='delete"+_i.toString()+"' id='delete"+_i.toString()+"' type='checkbox' />\
+              </td>\
+              </tr>";
 
-    //TODO: "Add stock" section
-    var addHtml = "<h2>Add a stock notification</h2>\
-    <table><tr><th>Stock</th><th>Target Point</th><th>Mode</th></tr>\
-    <tr>\
-    <td><input name='symbolAdd' id='symbolAdd' value='AAPL'</td>\
-    <td><input name='targetAdd' id='targetAdd' value=100 /></td>\
-    <td>\
-        Less    <input name='modeAdd' id='modeAdd' type='radio' checked />\
-        Greater <input name='modeAdd' id='modeAdd' type='radio') />\
-    </td>\
-    </tr></table>";
+      }
+      
 
-    document.getElementById("add-notification-div").innerHTML = addHtml;
+      resultHtml += "</table>";
 
+      document.getElementById("mongo-results").innerHTML = resultHtml;
+      ShowSubmitButtons();
+
+      //TODO: "Add stock" section
+      //document.getElementById("add-notification-div").innerHTML = addHtml;
+  } else {
+    console.log("phone number not found");
+
+    document.getElementById("mongo-results").innerHTML = "<h3>Phone number not found. Start a new entry?";
+
+    HideSubmitButtons();
+    
+    //document.getElementById("add-notification-div").innerHTML = addHtml;
+    document.getElementById("add-notification-div").style.visibility = "visible";
+
+  }
     
 }
