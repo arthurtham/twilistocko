@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 import requests
+import websocket
 
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
@@ -12,8 +13,6 @@ import json
 import ast
 
 from dotenv import load_dotenv
-load_dotenv()
-
 import os
 
 import random
@@ -21,7 +20,7 @@ import random
 app=Flask(__name__)
 CORS(app)
 
-
+load_dotenv(verbose=True)
 FINNHUB_AUTH_TOKEN = os.environ.get("FINNHUB_AUTH_TOKEN")
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN  = os.environ.get("TWILIO_AUTH_TOKEN")
@@ -82,15 +81,19 @@ def test_notification():
     message_sid = send_message(TEST_NUMBERS[random.randint(0,len(TEST_NUMBERS)-1)], message_body)
     return message_sid
 
-
-
 ### END Twilio Webhook Functions ###
 
 # TODO: Add/remove/manage requests to mongo functions?
+@app.route("/update-data", methods=["POST"])
+def update_data():
+    content = request.json
+    print(content)
+    return 'OK'
 
 
 if __name__ == "__main__":
     #from waitress import serve
     #serve(app, host='0.0.0.0', port=5000)
-    app.run(host="localhost", port=5000)
+    app.run(host='127.0.0.1', port=5000, debug=True)
+    
     
