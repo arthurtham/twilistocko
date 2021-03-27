@@ -1,6 +1,8 @@
 from flask import Flask, request
 from flask_cors import CORS
 import requests
+import websocket
+from threading import Thread
 
 from twilio.twiml.messaging_response import MessagingResponse
 from twilio.rest import Client
@@ -12,8 +14,6 @@ import json
 import ast
 
 from dotenv import load_dotenv
-load_dotenv()
-
 import os
 
 import random
@@ -21,7 +21,7 @@ import random
 app=Flask(__name__)
 CORS(app)
 
-
+load_dotenv(verbose=True)
 FINNHUB_AUTH_TOKEN = os.environ.get("FINNHUB_AUTH_TOKEN")
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN  = os.environ.get("TWILIO_AUTH_TOKEN")
@@ -29,6 +29,8 @@ TWILIO_PHONE_NUMBER = os.environ.get("TWILIO_PHONE_NUMBER")
 TWILIO_MESSAGING_SERVICE_SID = os.environ.get("TWILIO_MESSAGING_SERVICE_SID")
 TEST_NUMBERS = os.environ.get("TEST_NUMBERS").split(";")
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+
+ws = None
 
 ### START Twilio Functions ###
 def send_message(to_number, msg):
@@ -82,15 +84,51 @@ def test_notification():
     message_sid = send_message(TEST_NUMBERS[random.randint(0,len(TEST_NUMBERS)-1)], message_body)
     return message_sid
 
-
-
 ### END Twilio Webhook Functions ###
 
 # TODO: Add/remove/manage requests to mongo functions?
+@app.route("/update-data", methods=["POST"])
+def update_data():
+    content = request.json
+    return 'OK'
 
+def on_message(ws, message):
+    if (isinstance(message, str)):
+        json_object = json.loads(message)
+        r = requests.post('http://127.0.0.1:5000/update-data', json=json_object)
+
+def on_error(ws, error):
+    print(error)
+
+def on_close(ws):
+    print("### closed ###")
+
+def on_open(ws):
+    ws.send('{"type":"subscribe","symbol":"AAPL"}')
+    ws.send('{"type":"subscribe","symbol":"AMZN"}')
+    ws.send('{"type":"subscribe","symbol":"BINANCE:BTCUSDT"}')
+    ws.send('{"type":"subscribe","symbol":"IC MARKETS:1"}')
+
+@app.route('/subscribe')
+def subscribe():
+    ws.send(f"{{'type': 'subscribe', 'symbol': 'GME'}}")
+    return 'OK'
+    
 
 if __name__ == "__main__":
     #from waitress import serve
     #serve(app, host='0.0.0.0', port=5000)
-    app.run(host="localhost", port=5000)
+
+    # flask_thread = Thread(target=app.run, kwargs={'host': '127.0.0.1', 'port': 5000, 'debug': True})
+    # flask_thread.start()
+    # websocket.enableTrace(True)
+    ws = websocket.WebSocketApp("wss://ws.finnhub.io?token=" + FINNHUB_AUTH_TOKEN,
+                                    on_message = on_message,
+                                    on_error = on_error,
+                                    on_close = on_close)
+    ws.on_open = on_open
+    finnhub_thread = Thread(target=ws.run_forever, daemon=True)
+    finnhub_thread.start()
+    app.run()
+    
     
