@@ -95,6 +95,13 @@ def test_notification():
 @app.route("/update-data", methods=["POST"])
 def update_data():
     content = request.json
+
+    print(content)
+
+    #TODO: Look into json request, find all the stock values, and then be dumb
+    # and loop through the entire mongodb collection for the stocks and if the stock
+    # satisfies the requirements, send a text with Twilio
+
     return 'OK'
 
 def on_message(ws, message):
@@ -109,14 +116,19 @@ def on_close(ws):
     print("### closed ###")
 
 def on_open(ws):
-    ws.send('{"type":"subscribe","symbol":"AAPL"}')
-    ws.send('{"type":"subscribe","symbol":"AMZN"}')
-    ws.send('{"type":"subscribe","symbol":"BINANCE:BTCUSDT"}')
-    ws.send('{"type":"subscribe","symbol":"IC MARKETS:1"}')
+    #ws.send('{"type":"subscribe","symbol":"AAPL"}')
+    #ws.send('{"type":"subscribe","symbol":"AMZN"}')
+    #ws.send('{"type":"subscribe","symbol":"BINANCE:BTCUSDT"}')
+    #ws.send('{"type":"subscribe","symbol":"IC MARKETS:1"}')
+    pass
 
 @app.route('/subscribe')
 def subscribe():
-    ws.send(f"{{'type': 'subscribe', 'symbol': 'GME'}}")
+    ws.send(f"{{'type': 'subscribe', 'symbol': 'BINANCE:BTCUSDT'}}")
+    return 'OK'
+
+def subscribe_given_stock(stock):
+    ws.send('{"type":"subscribe","symbol":"'+stock+'"}')
     return 'OK'
     
 user = "python"
@@ -187,6 +199,7 @@ def getDict():
 def addDict():
     content = request.json
     updateDict("set", content["phone"], content["stock"], content["target"], content["mode"])
+    subscribe_given_stock(content["stock"])
     print("finished add")
     return 'OK'
 
@@ -195,16 +208,16 @@ if __name__ == "__main__":
     #from waitress import serve
     #serve(app, host='0.0.0.0', port=5000)
 
-    # flask_thread = Thread(target=app.run, kwargs={'host': '127.0.0.1', 'port': 5000, 'debug': True})
-    # flask_thread.start()
-    # websocket.enableTrace(True)
-    # ws = websocket.WebSocketApp("wss://ws.finnhub.io?token=" + FINNHUB_AUTH_TOKEN,
-    #                                 on_message = on_message,
-    #                                 on_error = on_error,
-    #                                 on_close = on_close)
-    # ws.on_open = on_open
-    # finnhub_thread = Thread(target=ws.run_forever, daemon=True)
-    # finnhub_thread.start()
+    #flask_thread = Thread(target=app.run, kwargs={'host': '127.0.0.1', 'port': 5000, 'debug': True})
+    #flask_thread.start()
+    websocket.enableTrace(True)
+    ws = websocket.WebSocketApp("wss://ws.finnhub.io?token=" + FINNHUB_AUTH_TOKEN,
+                                    on_message = on_message,
+                                    on_error = on_error,
+                                    on_close = on_close)
+    ws.on_open = on_open
+    finnhub_thread = Thread(target=ws.run_forever, daemon=True)
+    finnhub_thread.start()
     app.run()
 
     
