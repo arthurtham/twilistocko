@@ -82,35 +82,35 @@ import './example.css';
 //   );
 // }
 
-function MongoResults({stocksEntry, mongoResults}) {
-  console.log("Yolo");
-  console.log(stocksEntry);
+function MongoResults({stocksEntry}) {
+  //console.log("Yolo");
+  //console.log(stocksEntry);
   return (
     <tr>
       <td>{stocksEntry["symbol"]}</td>
       <td>{stocksEntry["target"]}</td>
       <td>{stocksEntry["mode"]}</td>
       <td>
-          <button onClick={(e) => (RemoveEntry(e, {stocksEntry}, {mongoResults}))}>Delete</button>
+          <button onClick={(e) => (RemoveEntry(e, {stocksEntry}))}>Delete</button>
       </td>
-      </tr>
+    </tr>
   );
 }
 
 export default function App() {
-    var temp = [{"symbol": "AMZN","target": 80,"mode": "less"},{"symbol": "MSFT","target": 40,"mode": "greater"}];
+    //var temp = [{"symbol": "AMZN","target": 80,"mode": "less"},{"symbol": "MSFT","target": 40,"mode": "greater"}];
     const [mongoResults, setMongoResults] = useState([]);
     const updateMongoResults = (e) => {
       e.preventDefault();
       document.getElementById("mongo-results").style.visibility = "visible";
       document.getElementById("shown-phone-number").innerHTML = document.getElementById("form-phone-number").value;
-      setMongoResults(GetDataByPhone(e), {mongoResults})
+      setMongoResults(GetDataByPhone(e))
     }
     return (
         <div>
             <h2>Dashboard</h2>
             <form>
-                Phone Number<input name="form-phone-number" id="form-phone-number" />
+                Phone Number<input name="form-phone-number" id="form-phone-number" placeholder="+15551234567" />
                 <button type="submit" name="form-phone-number-search" id="form-phone-number-search" onClick={updateMongoResults}>Search</button>
             </form>
 
@@ -121,9 +121,9 @@ export default function App() {
               <table>
               <thead><tr><th>Stock</th><th>Target</th><th>Mode</th><th>Delete?</th></tr></thead>
               <tbody>
-              {mongoResults.map(result => (
+              {mongoResults.map((result, index) => (
                 //console.log({result})
-                <MongoResults stocksEntry={result}></MongoResults>
+                <MongoResults key={index} stocksEntry={result}></MongoResults>
               ))}
               </tbody>             
               </table>
@@ -144,7 +144,7 @@ export default function App() {
                     <td><input name='symbolAdd' id='symbolAdd' value='AAPL'></input></td>
                     <td><input name='targetAdd' id='targetAdd' value="100" /></td>
                     <td>
-                        Less    <input name='modeAdd' id='modeAdd' type='radio' checked />
+                        Less    <input name='modeAdd' id='modeAdd' type='radio' defaultChecked />
                         Greater <input name='modeAdd' id='modeAdd' type='radio' />
                     </td>
                   </tr>
@@ -178,17 +178,19 @@ function HideSubmitButtons() {
     //document.getElementById("add-notification-div").style.visibility = "hidden";
 }
 
-function RemoveEntry(e, stocksEntry, mongoResults) {
+function RemoveEntry(e, stocksEntry) {
   console.log("Remove");
   console.log(stocksEntry);
+
+  GetDataByPhone(e);
 }
 
 function AddNotification(e){
     var greater = false;
     var greaterOrLessOptions = document.getElementsByName("modeAdd");
-    if (greaterOrLessOptions[0].checked == true) {
+    if (greaterOrLessOptions[0].checked === true) {
       greater = false;
-    } else if (greaterOrLessOptions[1].checked == true) {
+    } else if (greaterOrLessOptions[1].checked === true) {
       greater = true;
     }
 
