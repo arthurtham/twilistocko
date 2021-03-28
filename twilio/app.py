@@ -128,23 +128,40 @@ collection = db['start']
 
 def updateDict(setOperator, phone_number, stock, target, mode):
     query = {"phone_number": phone_number}
+    query_cursor = collection.find_one(query)
+    #print(query_cursor)
+
+    current_stocks = []
+
+    if query_cursor is None:
+        current_stocks = [
+            {
+            "symbol": stock,
+            "target": target,
+            "mode":   mode
+            }
+        ]
+    else:
+        print(query_cursor["stocks"])
+        print(type(query_cursor["stocks"]))
+        current_stocks = query_cursor["stocks"]
+        current_stocks.append({
+            "symbol": stock,
+            "target": target,
+            "mode":   mode
+        })
+
     updated_val = {
-        f"${setOperator}": {
-            "stocks": [
-                {
-                "symbol": stock,
-                "target": target,
-                "mode":   mode
-                }
-            ]
+            f"${setOperator}": {
+                "stocks": current_stocks
+            }
         }
-    }
-    db.collection.find_one(query)
     doc_test = collection.update(
-        query,
-        updated_val, 
-        upsert=True
-    )
+            query,
+            updated_val, 
+            upsert=True
+        )
+
 
 @app.route("/addDict", methods=["POST"])
 def addDict():
@@ -161,13 +178,13 @@ if __name__ == "__main__":
     # flask_thread = Thread(target=app.run, kwargs={'host': '127.0.0.1', 'port': 5000, 'debug': True})
     # flask_thread.start()
     # websocket.enableTrace(True)
-    ws = websocket.WebSocketApp("wss://ws.finnhub.io?token=" + FINNHUB_AUTH_TOKEN,
-                                    on_message = on_message,
-                                    on_error = on_error,
-                                    on_close = on_close)
-    ws.on_open = on_open
-    finnhub_thread = Thread(target=ws.run_forever, daemon=True)
-    finnhub_thread.start()
+    # ws = websocket.WebSocketApp("wss://ws.finnhub.io?token=" + FINNHUB_AUTH_TOKEN,
+    #                                 on_message = on_message,
+    #                                 on_error = on_error,
+    #                                 on_close = on_close)
+    # ws.on_open = on_open
+    # finnhub_thread = Thread(target=ws.run_forever, daemon=True)
+    # finnhub_thread.start()
     app.run()
 
     
