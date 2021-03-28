@@ -34,7 +34,19 @@ collection = db['start']
 
 new_values = {
     "$set": {
-        "+333333333": [
+        "stocks": [
+            {
+            "symbol": "yay",
+            "target": 2.00,
+            "mode":   "less"
+            }
+        ]
+    }
+}
+# remove items from collection
+remove_values = {
+    "$unset": {
+        "stocks": [
             {
             "symbol": "yay",
             "target": 2.00,
@@ -45,10 +57,19 @@ new_values = {
 }
 
 query = {"phone_number": "+33333333"}
+
+#add
 db.cursor.find_one(query)
 doc_test = collection.update(
         query,
         new_values, 
+        upsert=True
+    )
+
+#remove
+doc_test = collection.update(
+        query,
+        remove_values, 
         upsert=True
     )
 
