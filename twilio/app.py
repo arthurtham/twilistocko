@@ -94,13 +94,40 @@ def test_notification():
 # TODO: Add/remove/manage requests to mongo functions?
 @app.route("/update-data", methods=["POST"])
 def update_data():
-    content = request.json
-
-    print(content)
-
     #TODO: Look into json request, find all the stock values, and then be dumb
     # and loop through the entire mongodb collection for the stocks and if the stock
     # satisfies the requirements, send a text with Twilio
+    content = request.json
+
+    result_data = dict() # {symbol => (price, time)}
+    if "data" not in content:
+        return 'OK'
+    for entry in content["data"]:
+        if entry["s"] not in result_data:
+            result_data[entry["s"]] = (entry["p"], entry["t"])
+        else:
+            if result_data[entry["s"]][1] < entry["t"]:
+                result_data[entry["s"]] = (entry["p"], entry["t"])
+    
+    print("RESULTS: " + str(result_data))
+    
+    # Now loop through the mongodb to find the stocks
+
+    query_cursor = collection.find()
+    for query_entry in query_cursor:
+        #print(query_entry)
+        phone_number = query_entry["phone_number"]
+        stocks = query_entry["stocks"]
+        for stock in stocks:
+            if stock["symbol"] in result_data:
+                if stock["mode"] == "less" and float(stock["target"]) >= result_data[stock["symbol"]][0]:
+                    print("Stock is less for "+stock["symbol"]+": "+str(result_data[stock["symbol"]][0])+" is less than the target price of "+str(stock['target'])+".")
+                    pass # SEND TWILIO TEXT MESSAGE
+                elif stock["mode"] == "greater" and float(stock["target"]) <= result_data[stock["symbol"]][0]:
+                    print("Stock is greater for "+stock["symbol"]+": "+str(result_data[stock["symbol"]][0])+" is greater than the target price of "+str(stock['target'])+".")
+                    pass # SEND TWILIO TEXT MESSAGE
+
+    #input()
 
     return 'OK'
 
