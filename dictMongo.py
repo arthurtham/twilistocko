@@ -29,48 +29,51 @@ collection = db['start']
 
 # figure out how to add to/remove from the dictionary of stock notifications
 
+# setOperator = "$set"
+# newVal = {
+#     setOperator: {
+#         "stocks": [
+#             {
+#             "symbol": "yay",
+#             "target": 2.00,
+#             "mode":   "less"
+#             }
+#         ]
+#     }
+# }
+# sec_new_values = {
+#     setOperator: {
+#         "stocks": [
+#             {
+#             "symbol": "TME",
+#             "target": 59.00,
+#             "mode":   "greater"
+#             }
+#         ]
+#     }
+# }
+# query = {"phone_number": "+33333333"}
 # updates the doc, creates new doc if can't find doc w/ specified id
 # use $set for adding fields, $unset for removing fields
-
-new_values = {
-    "$set": {
-        "stocks": [
-            {
-            "symbol": "yay",
-            "target": 2.00,
-            "mode":   "less"
-            }
-        ]
+def updateDict(setOperator, phone_number, stock, target, mode):
+    query = {"phone_number": phone_number}
+    updated_val = {
+        f"${setOperator}": {
+            "stocks": [
+                {
+                "symbol": stock,
+                "target": target,
+                "mode":   mode
+                }
+            ]
+        }
     }
-}
-# remove items from collection
-remove_values = {
-    "$unset": {
-        "stocks": [
-            {
-            "symbol": "yay",
-            "target": 2.00,
-            "mode":   "less"
-            }
-        ]
-    }
-}
-
-query = {"phone_number": "+33333333"}
-
-#add
-db.cursor.find_one(query)
-doc_test = collection.update(
+    db.collection.find_one(query)
+    doc_test = collection.update(
         query,
-        new_values, 
+        updated_val, 
         upsert=True
     )
 
-#remove
-doc_test = collection.update(
-        query,
-        remove_values, 
-        upsert=True
-    )
-
-print("end")
+updateDict("set", "+999999999", "MSFT", 32, "less")
+updateDict("set", "+324145679", "AMZ", 29, "greater")
