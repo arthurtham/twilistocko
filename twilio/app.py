@@ -33,13 +33,13 @@ TWILIO_AUTH_TOKEN  = os.environ.get("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.environ.get("TWILIO_PHONE_NUMBER")
 TWILIO_MESSAGING_SERVICE_SID = os.environ.get("TWILIO_MESSAGING_SERVICE_SID")
 TEST_NUMBERS = os.environ.get("TEST_NUMBERS").split(";")
-client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+client_twilio = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 ws = None
 
 ### START Twilio Functions ###
-def send_message(to_number, msg):
-    message = client.messages.create(
+def send_message_text(to_number, msg):
+    message = client_twilio.messages.create(
         to=to_number, 
         from_=TWILIO_MESSAGING_SERVICE_SID,
         body=msg)
@@ -47,7 +47,7 @@ def send_message(to_number, msg):
     return message.sid
 
 def send_media_message(to_number, msg, media):
-    message = client.messages.create(
+    message = client_twilio.messages.create(
         to=to_number, 
         from_=TWILIO_MESSAGING_SERVICE_SID,
         media_url=[media],
@@ -69,7 +69,7 @@ def hello_world():
     #msg = resp.message()
     processed_incoming_msg = str(incoming_msg).strip().lower()
 
-    message_sid = send_message(incoming_number, "Hello world")
+    message_sid = send_message_text(incoming_number, "Hello world")
 
     return message_sid
 
@@ -86,7 +86,7 @@ def test_notification():
 
     message_body = f"{stock_symbol} currently has {stock_request['c']} points. Buy now!"
     
-    message_sid = send_message(TEST_NUMBERS[random.randint(0,len(TEST_NUMBERS)-1)], message_body)
+    message_sid = send_message_text(TEST_NUMBERS[random.randint(0,len(TEST_NUMBERS)-1)], message_body)
     return message_sid
 
 ### END Twilio Webhook Functions ###
@@ -114,6 +114,8 @@ def update_data():
     # Now loop through the mongodb to find the stocks
 
     query_cursor = collection.find()
+    if query_cursor is None:
+        return 'OK'
     for query_entry in query_cursor:
         #print(query_entry)
         phone_number = query_entry["phone_number"]
@@ -122,11 +124,17 @@ def update_data():
             if stock["symbol"] in result_data:
                 if stock["mode"] == "less" and float(stock["target"]) >= result_data[stock["symbol"]][0]:
                     print("Stock is less for "+stock["symbol"]+": "+str(result_data[stock["symbol"]][0])+" is less than the target price of "+str(stock['target'])+".")
-                    pass # SEND TWILIO TEXT MESSAGE
+                    send_message_text(phone_number,
+                        "Stock is less for "+stock["symbol"]+": "+str(result_data[stock["symbol"]][0])+
+                        " is less than the target price of "+str(stock['target'])+". BUY NOW!"
+                    ) # SEND TWILIO TEXT MESSAGE
                     removeStockFromMongo("set", phone_number, stock["symbol"], stock["target"], stock["mode"])                    
                 elif stock["mode"] == "greater" and float(stock["target"]) <= result_data[stock["symbol"]][0]:
                     print("Stock is greater for "+stock["symbol"]+": "+str(result_data[stock["symbol"]][0])+" is greater than the target price of "+str(stock['target'])+".")
-                    pass # SEND TWILIO TEXT MESSAGE
+                    send_message_text(phone_number,
+                        "Stock is less for "+stock["symbol"]+": "+str(result_data[stock["symbol"]][0])+
+                        " is less than the target price of "+str(stock['target'])+". SELL NOW!"
+                    ) # SEND TWILIO TEXT MESSAGE
                     removeStockFromMongo("set", phone_number, stock["symbol"], stock["target"], stock["mode"])
 
 
