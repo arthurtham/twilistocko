@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
 import websocket
@@ -21,7 +21,7 @@ import random
 
 import ssl
 from pymongo import MongoClient
-from bson import ObjectId
+from bson import ObjectId, json_util
 
 app=Flask(__name__)
 CORS(app)
@@ -161,6 +161,26 @@ def updateDict(setOperator, phone_number, stock, target, mode):
             updated_val, 
             upsert=True
         )
+
+def getDictFromMongo(phone_number):
+    query = {"phone_number": phone_number}
+    query_cursor = collection.find_one(query)
+    print(query_cursor)
+    #print(type(query_cursor))
+    #print(str(query_cursor["_id"]))
+    if query_cursor is None:
+        return {}
+    else:
+        query_cursor_id = str(query_cursor["_id"])
+        query_cursor["_id"] = query_cursor_id
+        return query_cursor
+
+
+@app.route("/getDict", methods=["POST"])
+def getDict():
+    content = request.json
+    return json.dumps(getDictFromMongo(content["phone"]))
+     
 
 
 @app.route("/addDict", methods=["POST"])

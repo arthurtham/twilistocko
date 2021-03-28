@@ -82,30 +82,94 @@ import './example.css';
 //   );
 // }
 
-function MongoResults({stocksEntry}) {
-  //console.log("Yolo");
-  //console.log(stocksEntry);
+function MongoResults({index, stocksEntry, setMongoResults, mongoResults}) {
+  console.log("Yolo");
+  console.log(stocksEntry);
+  function RemoveEntry(e, setMongoResults, mongoResults) {
+    console.log("Remove Entry e: " + e.target.value);
+    var copy = [...mongoResults];
+    copy.splice(index, 1);
+    setMongoResults(copy);
+  }
   return (
     <tr>
       <td>{stocksEntry["symbol"]}</td>
       <td>{stocksEntry["target"]}</td>
       <td>{stocksEntry["mode"]}</td>
       <td>
-          <button onClick={(e) => (RemoveEntry(e, {stocksEntry}))}>Delete</button>
+          <button onClick={(e) => RemoveEntry(e, setMongoResults, mongoResults)}>Delete</button>
       </td>
     </tr>
   );
 }
 
+
+
+
 export default function App() {
     //var temp = [{"symbol": "AMZN","target": 80,"mode": "less"},{"symbol": "MSFT","target": 40,"mode": "greater"}];
     const [mongoResults, setMongoResults] = useState([]);
-    const updateMongoResults = (e) => {
+    const updateMongoResults = async (e) => {
       e.preventDefault();
       document.getElementById("mongo-results").style.visibility = "visible";
       document.getElementById("shown-phone-number").innerHTML = document.getElementById("form-phone-number").value;
-      setMongoResults(GetDataByPhone(e))
+      var temp = await GetDataByPhone(e);
+      console.log("UPDATE: " + temp);
+      // setMongoResults(GetDataByPhone(e))
     }
+
+
+    // if (mongoResults 
+    function GetDataByPhone(e) {
+      e.preventDefault();
+  
+      var phoneNumberElement = document.getElementById("shown-phone-number");
+      var phoneNumber = phoneNumberElement.innerHTML;
+      console.log(phoneNumber);
+      //phoneNumberElement.disabled = true;
+  
+      var submitData = {
+          "phone": phoneNumber
+      };
+  
+      console.log("GetDataByPhone");
+      console.log(submitData);
+  
+      const requestOptions = {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify( submitData )
+      };
+  
+      fetch(MONGO_LINK+"/getDict", requestOptions)
+      .then(response => response.json())
+      .then(data => {
+        
+          var results = data;
+          console.log("We got results");
+          console.log(results);
+  
+          var stocks;
+          document.getElementById("add-notification-div").style.visibility = "visible";
+          console.log("HIHIHI");
+          if (Object.keys(results).length > 0) {
+            stocks = results["stocks"]
+            console.log("Here are our stocks");
+            console.log(stocks);
+            ShowSubmitButtons();
+            setMongoResults(stocks);
+            //return stocks;
+          } else {
+            console.log("phone number not found");
+            HideSubmitButtons();
+            document.getElementById("add-notification-div").style.visibility = "visible";
+            setMongoResults([]);
+          }
+      }
+    );
+      
+  }
+
     return (
         <div>
             <h2>Dashboard</h2>
@@ -123,7 +187,7 @@ export default function App() {
               <tbody>
               {mongoResults.map((result, index) => (
                 //console.log({result})
-                <MongoResults key={index} stocksEntry={result}></MongoResults>
+                <MongoResults key={index} index={index} stocksEntry={result} setMongoResults={setMongoResults} mongoResults={mongoResults}></MongoResults>
               ))}
               </tbody>             
               </table>
@@ -141,8 +205,8 @@ export default function App() {
                 </thead>
                 <tbody>
                   <tr>
-                    <td><input name='symbolAdd' id='symbolAdd' value='AAPL'></input></td>
-                    <td><input name='targetAdd' id='targetAdd' value="100" /></td>
+                    <td><input name='symbolAdd' id='symbolAdd' defaultValue='AAPL'></input></td>
+                    <td><input name='targetAdd' id='targetAdd' defaultValue="100" /></td>
                     <td>
                         Less    <input name='modeAdd' id='modeAdd' type='radio' defaultChecked />
                         Greater <input name='modeAdd' id='modeAdd' type='radio' />
@@ -178,12 +242,6 @@ function HideSubmitButtons() {
     //document.getElementById("add-notification-div").style.visibility = "hidden";
 }
 
-function RemoveEntry(e, stocksEntry) {
-  console.log("Remove");
-  console.log(stocksEntry);
-
-  GetDataByPhone(e);
-}
 
 function AddNotification(e){
     var greater = false;
@@ -210,8 +268,7 @@ function AddNotification(e){
       body: JSON.stringify( submitData )
     };
 
-    fetch(MONGO_LINK+"/hello-world", requestOptions)
-    .then(response => response.json())
+    fetch(MONGO_LINK+"/addDict", requestOptions)
     .then(data => 
       console.log(data)
       );
@@ -223,44 +280,6 @@ function ConfirmNotificationAdded(data) {
 
 }
 
-function GetDataByPhone(e) {
-    e.preventDefault();
 
-    var phoneNumberElement = document.getElementById("form-phone-number");
-    var phoneNumber = phoneNumberElement.value;
-    console.log(phoneNumber);
-    //phoneNumberElement.disabled = true;
-
-    //TODO: Get back results. Theoretically: send phone number to mongo, and we will get JSON back with the necessary data
-    var results = {
-      "+15101234567" : [
-        {
-          "symbol": "AMZN",
-          "target": 80,
-          "mode": "less", 
-        },
-        {
-          "symbol": "MSFT",
-          "target": 30,
-          "mode": "greater"
-        }
-      ]
-    }
-
-    var stocks;
-    document.getElementById("add-notification-div").style.visibility = "visible";
-    if (phoneNumber in results) {
-      stocks = results[phoneNumber]
-      console.log(stocks);
-      ShowSubmitButtons();
-      return stocks;
-  } else {
-    console.log("phone number not found");
-    HideSubmitButtons();
-    //document.getElementById("add-notification-div").style.visibility = "visible";
-    return [];
-  }
-    
-}
 
 //export default App;
