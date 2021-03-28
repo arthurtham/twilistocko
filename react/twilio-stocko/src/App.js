@@ -6,6 +6,7 @@ import React, { useState } from "react";
 //   Link
 // } from "react-router-dom";
 import './example.css';
+import logo from './twilio.png';
 
 // This site has 3 pages, all of which are rendered
 // dynamically in the browser (not server rendered).
@@ -193,12 +194,16 @@ export default function App() {
   }
 
     return (
-        <div>
-            <h2>Dashboard</h2>
+        <div style={{padding:"20px"}}>
+            <center>
+              <img src={logo} />
+              <h1>Twilio Stocks</h1>
+            
             <form>
-                Phone Number<input name="form-phone-number" id="form-phone-number" placeholder="+15551234567" />
+                Phone Number <input name="form-phone-number" id="form-phone-number" placeholder="+15551234567" />
                 <button type="submit" name="form-phone-number-search" id="form-phone-number-search" onClick={updateMongoResults}>Search</button>
             </form>
+            </center>
 
             <hr />
 
@@ -230,8 +235,8 @@ export default function App() {
                     <td><input name='symbolAdd' id='symbolAdd' defaultValue='AAPL'></input></td>
                     <td><input name='targetAdd' id='targetAdd' defaultValue="100" /></td>
                     <td>
-                        Less    <input name='modeAdd' id='modeAdd' type='radio' defaultChecked />
-                        Greater <input name='modeAdd' id='modeAdd' type='radio' />
+                        <input name='modeAdd' id='modeAdd' type='radio' defaultChecked /> Less<br />
+                        <input name='modeAdd' id='modeAdd' type='radio' /> Greater
                     </td>
                   </tr>
                 </tbody>
