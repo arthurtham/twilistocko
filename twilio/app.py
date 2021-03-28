@@ -149,7 +149,7 @@ def updateDict(setOperator, phone_number, stock, target, mode):
 @app.route("/addDict", methods=["POST"])
 def addDict():
     content = request.json
-    updateDict(content["phone"], content["stock"], content["target"], content["mode"])
+    updateDict("set", content["phone"], content["stock"], content["target"], content["mode"])
     print("finished add")
     return 'OK'
 
