@@ -123,9 +123,12 @@ def update_data():
                 if stock["mode"] == "less" and float(stock["target"]) >= result_data[stock["symbol"]][0]:
                     print("Stock is less for "+stock["symbol"]+": "+str(result_data[stock["symbol"]][0])+" is less than the target price of "+str(stock['target'])+".")
                     pass # SEND TWILIO TEXT MESSAGE
+                    removeStockFromMongo("set", phone_number, stock["symbol"], stock["target"], stock["mode"])                    
                 elif stock["mode"] == "greater" and float(stock["target"]) <= result_data[stock["symbol"]][0]:
                     print("Stock is greater for "+stock["symbol"]+": "+str(result_data[stock["symbol"]][0])+" is greater than the target price of "+str(stock['target'])+".")
                     pass # SEND TWILIO TEXT MESSAGE
+                    removeStockFromMongo("set", phone_number, stock["symbol"], stock["target"], stock["mode"])
+
 
     #input()
 
