@@ -188,12 +188,37 @@ def getDictFromMongo(phone_number):
         return query_cursor
 
 
+def removeStockFromMongo(setOperator, phone_number, stock, target, mode):
+    query = {"phone_number": phone_number}
+    query_cursor = collection.find_one(query)
+
+    if query_cursor is None:
+        return 
+    
+    current_stocks = query_cursor["stocks"]
+    for _i in range(len(current_stocks)):
+        entry = current_stocks[_i]
+        if entry["symbol"] == stock and entry["target"] == target and entry["mode"] == mode:
+            current_stocks.pop(_i)
+            break
+    
+    updated_val = {
+            f"${setOperator}": {
+                "stocks": current_stocks
+            }
+        }
+    doc_test = collection.update(
+            query,
+            updated_val, 
+            upsert=True
+        )
+
+
 @app.route("/getDict", methods=["POST"])
 def getDict():
     content = request.json
     return json.dumps(getDictFromMongo(content["phone"]))
      
-
 
 @app.route("/addDict", methods=["POST"])
 def addDict():
@@ -201,6 +226,13 @@ def addDict():
     updateDict("set", content["phone"], content["stock"], content["target"], content["mode"])
     subscribe_given_stock(content["stock"])
     print("finished add")
+    return 'OK'
+
+@app.route("/deleteDict", methods=["POST"])
+def deleteDict():
+    content = request.json
+    removeStockFromMongo("set", content["phone"], content["stock"], content["target"], content["mode"])
+    print("finished delete")
     return 'OK'
 
 

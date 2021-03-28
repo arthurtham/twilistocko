@@ -86,10 +86,32 @@ function MongoResults({index, stocksEntry, setMongoResults, mongoResults}) {
   console.log("Yolo");
   console.log(stocksEntry);
   function RemoveEntry(e, setMongoResults, mongoResults) {
-    console.log("Remove Entry e: " + e.target.value);
+    console.log("Remove Entry: " + stocksEntry);
     var copy = [...mongoResults];
     copy.splice(index, 1);
     setMongoResults(copy);
+
+    var submitData = {
+      "phone": document.getElementById("shown-phone-number").innerHTML, 
+      "stock": stocksEntry["symbol"],
+      "target": stocksEntry["target"],
+      "mode": stocksEntry["mode"] // or less
+    };
+
+    console.log("MongoResults Delete Request");
+    console.log(submitData);
+
+    const requestOptions = {
+      method: "POST",
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify( submitData )
+    };
+
+    fetch(MONGO_LINK+"/deleteDict", requestOptions)
+    .then(data => 
+      console.log(data)
+    );
+
   }
   return (
     <tr>
